@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import * as TaskManager from 'expo-task-manager';
+import * as BackgroundFetch from 'expo-background-fetch';
+import Constants from 'expo-constants';
 
-// Define the type for the weather data
 interface WeatherData {
   name: string;
   main: {
@@ -15,6 +18,15 @@ interface WeatherData {
 
 const WEATHER_API_KEY = '02b266f0b137e9fc4c1c258b4b8a8ff3'; // Replace with your weather API key
 const DEFAULT_LOCATION = 'Chennai';
+const FETCH_WEATHER_TASK = 'fetch-weather-task';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function App() {
   const [location, setLocation] = useState(DEFAULT_LOCATION);
@@ -23,6 +35,8 @@ export default function App() {
 
   useEffect(() => {
     fetchWeather(location);
+    registerFetchWeatherTask();
+    scheduleDailyNotification();
   }, [location]);
 
   const fetchWeather = async (loc: string) => {
@@ -41,6 +55,55 @@ export default function App() {
   const handleSetLocation = () => {
     setLocation(newLocation);
     setNewLocation('');
+  };
+
+  const scheduleDailyNotification = async () => {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Daily Weather Update',
+        body: `Check out the weather for ${location}!`,
+      },
+      trigger: {
+        hour: 20,
+        minute: 50,
+        repeats: true,
+      },
+    });
+  };
+
+  const registerFetchWeatherTask = async () => {
+    if (TaskManager.isTaskDefined(FETCH_WEATHER_TASK)) {
+      await BackgroundFetch.unregisterTaskAsync(FETCH_WEATHER_TASK);
+    }
+
+    TaskManager.defineTask(FETCH_WEATHER_TASK, async () => {
+      try {
+        await fetchWeather(location);
+
+        if (weather) {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: `Weather in ${weather.name}`,
+              body: `Temp: ${(weather.main.temp - 273.15).toFixed(2)}°C, ${weather.weather[0].description}, Humidity: ${weather.main.humidity}%`,
+            },
+            trigger: null,
+          });
+        }
+
+        return BackgroundFetch.BackgroundFetchResult.NewData;
+      } catch (error) {
+        console.error(error);
+        return BackgroundFetch.BackgroundFetchResult.Failed;
+      }
+    });
+
+    await BackgroundFetch.registerTaskAsync(FETCH_WEATHER_TASK, {
+      minimumInterval: 60 * 60 * 24, // 24 hours
+      stopOnTerminate: false,
+      startOnBoot: true,
+    });
   };
 
   return (
