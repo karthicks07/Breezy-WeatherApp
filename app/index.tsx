@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Platform } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
-import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface WeatherData {
   name: string;
@@ -19,6 +19,7 @@ interface WeatherData {
 const WEATHER_API_KEY = '02b266f0b137e9fc4c1c258b4b8a8ff3'; // Replace with your weather API key
 const DEFAULT_LOCATION = 'Chennai';
 const FETCH_WEATHER_TASK = 'fetch-weather-task';
+const LOCATION_KEY = 'USER_LOCATION';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -34,10 +35,36 @@ export default function App() {
   const [newLocation, setNewLocation] = useState('');
 
   useEffect(() => {
-    fetchWeather(location);
-    registerFetchWeatherTask();
-    scheduleDailyNotification();
+    loadLocation();
+  }, []);
+
+  useEffect(() => {
+    if (location) {
+      fetchWeather(location);
+      registerFetchWeatherTask();
+      scheduleDailyNotification();
+      saveLocation(location);
+    }
   }, [location]);
+
+  const loadLocation = async () => {
+    try {
+      const savedLocation = await AsyncStorage.getItem(LOCATION_KEY);
+      if (savedLocation) {
+        setLocation(savedLocation);
+      }
+    } catch (error) {
+      console.error('Failed to load location from storage', error);
+    }
+  };
+
+  const saveLocation = async (loc: string) => {
+    try {
+      await AsyncStorage.setItem(LOCATION_KEY, loc);
+    } catch (error) {
+      console.error('Failed to save location to storage', error);
+    }
+  };
 
   const fetchWeather = async (loc: string) => {
     try {
@@ -66,8 +93,8 @@ export default function App() {
         body: `Check out the weather for ${location}!`,
       },
       trigger: {
-        hour: 20,
-        minute: 50,
+        hour: 8,
+        minute: 0,
         repeats: true,
       },
     });
@@ -108,7 +135,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Weather App</Text>
+      <Text style={styles.heading}>Weather Apppp</Text>
       <Text>Current Location: {location}</Text>
       <TextInput
         style={styles.input}
