@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Image, Dimensions } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 interface WeatherData {
   name: string;
@@ -15,6 +16,8 @@ interface WeatherData {
     description: string;
   }[];
 }
+
+const { width, height } = Dimensions.get('window');
 
 const WEATHER_API_KEY = '02b266f0b137e9fc4c1c258b4b8a8ff3'; // Replace with your weather API key
 const DEFAULT_LOCATION = 'Chennai';
@@ -127,36 +130,25 @@ export default function App() {
     });
 
     await BackgroundFetch.registerTaskAsync(FETCH_WEATHER_TASK, {
-      minimumInterval: 60 * 60 * 24, // 24 hours
+      minimumInterval: 60 * 60 * 24,
       stopOnTerminate: false,
       startOnBoot: true,
     });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Weather Apppp</Text>
-      <Text>Current Location: {location}</Text>
-      <TextInput
-        style={styles.input}
-        value={newLocation}
-        onChangeText={(text) => setNewLocation(text)}
-        placeholder="Enter new location"
-      />
-      <Button title="Set Location" onPress={handleSetLocation} />
-      {weather && (
-        <View style={styles.weatherContainer}>
-          <Text style={styles.weatherHeading}>Weather in {weather.name}</Text>
-          <Text>Temperature: {(weather.main.temp - 273.15).toFixed(2)}°C</Text>
-          <Text>Weather: {weather.weather[0].description}</Text>
-          <Text>Humidity: {weather.main.humidity}%</Text>
-        </View>
-      )}
+    <View style={styles.maincontainer}>
+      
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  maincontainer: {
+    height:'100%',
+    backgroundColor: 'red',
+  },
+
   container: {
     flex: 1,
     alignItems: 'center',
@@ -181,6 +173,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     padding: 10,
+   
   },
   weatherHeading: {
     fontSize: 20,
@@ -188,3 +181,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
+
+
+
+// <Text style={styles.heading}>Weather App</Text>
+//         <Text>Current Location: {location}</Text>
+//         <TextInput
+//           style={styles.input}
+//           value={newLocation}
+//           onChangeText={(text) => setNewLocation(text)}
+//           placeholder="Enter new location"
+//         />
+//         <Button title="Set Location" onPress={handleSetLocation} />
+//         {weather && (
+//           <View style={styles.weatherContainer}>
+//             <Text style={styles.weatherHeading}>Weather in {weather.name}</Text>
+//             <Text>Temperature: {(weather.main.temp - 273.15).toFixed(2)}°C</Text>
+//             <Text>Weather: {weather.weather[0].description}</Text>
+//             <Text>Humidity: {weather.main.humidity}%</Text>
+//           </View>
+//         )}
