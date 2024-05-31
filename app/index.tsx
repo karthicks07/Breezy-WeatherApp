@@ -138,7 +138,24 @@ export default function App() {
 
   return (
     <View style={styles.maincontainer}>
-      
+      <View style={{height:70}}/>
+        <Text>Weather at {location}</Text>
+         <TextInput
+          style={styles.input}
+          value={newLocation}
+          onChangeText={(text) => setNewLocation(text)}
+          placeholder="Enter new location"
+        />
+        <Button title="Set Location" onPress={handleSetLocation} />
+        
+        {weather && (
+          <View style={styles.weatherContainer}>
+            <Text style={styles.weatherHeading}>Weather in {weather.name}</Text>
+            <Text>Temperature: {(weather.main.temp - 273.15).toFixed(2)}°C</Text>
+            <Text>Weather: {weather.weather[0].description}</Text>
+            <Text>Humidity: {weather.main.humidity}%</Text>
+          </View>
+        )}
     </View>
   );
 }
@@ -146,7 +163,7 @@ export default function App() {
 const styles = StyleSheet.create({
   maincontainer: {
     height:'100%',
-    backgroundColor: 'red',
+   
   },
 
   container: {
