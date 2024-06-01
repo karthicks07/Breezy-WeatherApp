@@ -66,6 +66,7 @@ export default function App() {
     poppins: require('../assets/fonts/Poppins-Medium.ttf'),
     poppinsBold: require('../assets/fonts/Poppins-Bold.ttf'),
     poppinsmed: require('../assets/fonts/Poppins-Medium.ttf'),
+    poppinslight: require('../assets/fonts/Poppins-Thin.ttf'),
   });
 
   useEffect(() => {
@@ -197,14 +198,14 @@ export default function App() {
               <View style={styles.details}>
                 <View style={styles.temp}>
                   {weather && (
-                    <Text style={{ fontFamily: 'poppinsmed', fontSize: 105, color: '#EEF7FF' }}>
+                    <Text style={{ fontFamily: 'poppinslight', fontSize: 105, color: '#EEF7FF' }}>
                       {(weather.main.temp - 273.15).toFixed(0)}°
                     </Text>
                   )}
                 </View>
                 <View style={styles.others}>
                   {weather && (
-                    <Text style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Feels Like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
+                    <Text style={{ fontSize: 19, fontFamily: 'poppinslight', color: '#EEF7FF' }}>Feels Like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
                   )}
       
                 </View>
