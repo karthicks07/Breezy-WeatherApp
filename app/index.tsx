@@ -9,6 +9,8 @@ interface WeatherData {
     temp: number;
     humidity: number;
     feels_like: number;
+    temp_max:number;
+    temp_min:number;
   };
   rain: {
     one: number;
@@ -36,6 +38,7 @@ const weatherImages = {
   wind: require('../assets/clouds/wind.png'),
   hot: require('../assets/clouds/hot.png'),
   light: require('../assets/clouds/light.png'),
+  clouds: require('../assets/clouds/broken_clouds.png'),
 };
 
 const getWeatherImage = (description: string) => {
@@ -48,8 +51,8 @@ const getWeatherImage = (description: string) => {
   if (description.includes('wind')) return weatherImages.wind;
   if (description.includes('hot')) return weatherImages.hot;
   if (description.includes('light')) return weatherImages.light;
-  // Add other conditions as needed
-  return weatherImages.clear; // Default image
+  if (description.includes('clouds')) return weatherImages.broken_clouds;
+  return weatherImages.clear;
 };
 
 export default function App() {
@@ -174,7 +177,7 @@ export default function App() {
           ) : (
             <>
               {weather && (
-                <Text style={{ fontFamily: 'poppinsmed', fontSize: 30, color: '#282828' }}>
+                <Text style={{ fontFamily: 'poppinsmed', fontSize: 30, color: '#EEF7FF' }}>
                   {weather.weather[0].description.charAt(0).toUpperCase() + weather.weather[0].description.slice(1)}
                 </Text>
               )}
@@ -189,48 +192,60 @@ export default function App() {
               )}
               </View>
               <View style={styles.cityname}>
-                <Text style={{ fontSize: 19, fontFamily: 'poppins' }}>Today at {location},</Text>
+                <Text style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Today at {location},</Text>
               </View>
               <View style={styles.details}>
                 <View style={styles.temp}>
                   {weather && (
-                    <Text style={{ fontFamily: 'poppinsmed', fontSize: 105, color: '#282828' }}>
+                    <Text style={{ fontFamily: 'poppinsmed', fontSize: 105, color: '#EEF7FF' }}>
                       {(weather.main.temp - 273.15).toFixed(0)}°
                     </Text>
                   )}
                 </View>
                 <View style={styles.others}>
-                  <View style={styles.humidity}>
-                    <Text style={{ fontFamily: 'poppins', fontSize: 13 }}>Humidity</Text>
+                  {weather && (
+                    <Text style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Feels Like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
+                  )}
+      
+                </View>
+              </View>
+              <View style={styles.otherDetails}>
+              <View style={styles.humidity}>
+                    <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Humidity</Text>
                     <View style={styles.image}>
                       <Image source={require('../assets/clouds/humidityIcon.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
-                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#282828' }}>{weather.main.humidity}%</Text>
+                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{weather.main.humidity}%</Text>
                     )}
                   </View>
                   <View style={styles.humidity}>
-                    <Text style={{ fontFamily: 'poppins', fontSize: 13 }}>Wind</Text>
+                    <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Wind</Text>
                     <View style={styles.image}>
                       <Image source={require('../assets/clouds/wind.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
-                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#282828' }}>{weather.wind.speed}m/s</Text>
+                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{weather.wind.speed}m/s</Text>
                     )}
                   </View>
-                </View>
-              </View>
-              <View style={styles.feels}>
-                <View style={styles.feel1}>
-                  <View style={styles.cityname}>
+                  <View style={styles.humidity}>
+                    <Text style={{ fontFamily: 'poppins', fontSize: 13 , color: '#EEF7FF'}}>Maximum</Text>
+                    <View style={styles.image}>
+                      <Image source={require('../assets/clouds/clear.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
+                    </View>
                     {weather && (
-                      <Text style={{ fontSize: 19, fontFamily: 'poppins' }}>Feels like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
+                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_max - 273.15).toFixed(0)}°</Text>
                     )}
                   </View>
-                </View>
-                <View style={styles.feel2}>
-                  <Image source={require('../assets/clouds/human.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
-                </View>
+                  <View style={styles.humidity}>
+                    <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Minimum</Text>
+                    <View style={styles.image}>
+                      <Image source={require('../assets/clouds/hot.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
+                    </View>
+                    {weather && (
+                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_min - 273.15).toFixed(0)}°</Text>
+                    )}
+                  </View>
               </View>
             </>
           )}
@@ -247,7 +262,7 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'center',
-    backgroundColor:'#EBF1F8'
+    backgroundColor:'#12172F'
   },
   innercon:{
     height:'100%',
@@ -319,7 +334,7 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     justifyContent:'center',
     alignItems:'center',
-    gap:10
+    gap:10,
   },
   humidity:{
     height:80,
@@ -328,12 +343,13 @@ const styles = StyleSheet.create({
     flexDirection:'column',
     justifyContent:'center',
     alignItems:'center',
+    gap:4
   },
   image:{
     height:40,
     width:40,
   },
-  feels:{
+  otherDetails:{
     marginTop:-20,
     height:110,
     width:'87%',
@@ -341,13 +357,6 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     justifyContent:'center',
     alignItems:'center',
-  },
-  feel1:{
-    height:'100%',
-    width:'60%',
-  },
-  feel2:{
-    height:'100%',
-    width:'40%',
+    gap:25,
   }
 });
