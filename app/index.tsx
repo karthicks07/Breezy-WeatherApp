@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'center',
-    backgroundColor:'#fff'
+    backgroundColor:'#EBF1F8'
   },
   innercon:{
     height:'100%',
