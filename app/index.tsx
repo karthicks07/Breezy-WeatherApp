@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as TaskManager from 'expo-task-manager';
-import * as BackgroundFetch from 'expo-background-fetch';
+import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 
@@ -11,38 +8,73 @@ interface WeatherData {
   main: {
     temp: number;
     humidity: number;
+    feels_like: number;
+  };
+  rain: {
+    one: number;
   };
   weather: {
     description: string;
   }[];
+  wind: {
+    speed: number;
+  };
 }
 
-
-const WEATHER_API_KEY = '02b266f0b137e9fc4c1c258b4b8a8ff3'; // Replace with your weather API key
-const DEFAULT_LOCATION = 'Chennai';
-const FETCH_WEATHER_TASK = 'fetch-weather-task';
+const WEATHER_API_KEY = '02b266f0b137e9fc4c1c258b4b8a8ff3';
+const DEFAULT_LOCATION = 'Namakkal';
 const LOCATION_KEY = 'USER_LOCATION';
+
+
+const weatherImages = {
+  clear: require('../assets/clouds/clear.png'),
+  rain: require('../assets/clouds/rain.png'),
+  thunderstorm: require('../assets/clouds/thunderstorm.png'),
+  scattered_clouds: require('../assets/clouds/scattered_clouds.png'),
+  few_clouds: require('../assets/clouds/few_clouds.png'),
+  broken_clouds: require('../assets/clouds/broken_clouds.png'),
+  wind: require('../assets/clouds/wind.png'),
+  hot: require('../assets/clouds/hot.png'),
+  light: require('../assets/clouds/light.png'),
+};
+
+const getWeatherImage = (description: string) => {
+  if (description.includes('clear')) return weatherImages.clear;
+  if (description.includes('rain')) return weatherImages.rain;
+  if (description.includes('thunderstorm')) return weatherImages.thunderstorm;
+  if (description.includes('scattered')) return weatherImages.scattered_clouds;
+  if (description.includes('few')) return weatherImages.few_clouds;
+  if (description.includes('broken')) return weatherImages.broken_clouds;
+  if (description.includes('wind')) return weatherImages.wind;
+  if (description.includes('hot')) return weatherImages.hot;
+  if (description.includes('light')) return weatherImages.light;
+  // Add other conditions as needed
+  return weatherImages.clear; // Default image
+};
 
 export default function App() {
   const [location, setLocation] = useState(DEFAULT_LOCATION);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [newLocation, setNewLocation] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [time, setTime] = useState(new Date());
   const [loaded] = useFonts({
     poppins: require('../assets/fonts/Poppins-Medium.ttf'),
     poppinsBold: require('../assets/fonts/Poppins-Bold.ttf'),
-    poppinsmed: require('../assets/fonts/Poppins-Medium.ttf')
+    poppinsmed: require('../assets/fonts/Poppins-Medium.ttf'),
   });
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTime(new Date());
+      const newTime = new Date(time.getTime() + 3600 * 1000);
+      setTime(newTime);
     }, 1000);
 
-    return () => clearInterval(timer); // Cleanup interval on component unmount
+    return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (date) => {
+  const formatTime = (date: Date) => {
     const hours = date.getHours().toString().padStart(2, '0');
     return `${hours}:00`;
   };
@@ -56,7 +88,6 @@ export default function App() {
   useEffect(() => {
     if (location) {
       fetchWeather(location);
-      registerFetchWeatherTask();
       saveLocation(location);
     }
   }, [location]);
@@ -66,9 +97,12 @@ export default function App() {
       const savedLocation = await AsyncStorage.getItem(LOCATION_KEY);
       if (savedLocation) {
         setLocation(savedLocation);
+      } else {
+        setLocation(DEFAULT_LOCATION);
       }
     } catch (error) {
       console.error('Failed to load location from storage', error);
+      setLocation(DEFAULT_LOCATION);
     }
   };
 
@@ -82,6 +116,7 @@ export default function App() {
 
   const fetchWeather = async (loc: string) => {
     try {
+      setLoading(true);
       const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${loc}&appid=${WEATHER_API_KEY}`);
       if (!response.ok) {
         throw new Error('Failed to fetch weather data');
@@ -90,6 +125,8 @@ export default function App() {
       setWeather(data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,77 +135,107 @@ export default function App() {
     setNewLocation('');
   };
 
-  const registerFetchWeatherTask = async () => {
-    if (TaskManager.isTaskDefined(FETCH_WEATHER_TASK)) {
-      await BackgroundFetch.unregisterTaskAsync(FETCH_WEATHER_TASK);
-    }
-
-    TaskManager.defineTask(FETCH_WEATHER_TASK, async () => {
-      try {
-        await fetchWeather(location);
-
-        if (weather) {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: `Weather in ${weather.name}`,
-              body: `Temp: ${(weather.main.temp - 273.15).toFixed(2)}°C, ${weather.weather[0].description}, Humidity: ${weather.main.humidity}%`,
-            },
-            trigger: null,
-          });
-        }
-
-        return BackgroundFetch.BackgroundFetchResult.NewData;
-      } catch (error) {
-        console.error(error);
-        return BackgroundFetch.BackgroundFetchResult.Failed;
-      }
-    });
-
-    await BackgroundFetch.registerTaskAsync(FETCH_WEATHER_TASK, {
-      minimumInterval: 60 * 60 * 24,
-      stopOnTerminate: false,
-      startOnBoot: true,
-    });
-  };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchWeather(location)
+      .then(() => setRefreshing(false))
+      .catch((error) => {
+        console.error('Failed to refresh data:', error);
+        setRefreshing(false);
+      });
+  }, [location]);
 
   if (!loaded) {
-    return null; // Or a loading indicator component
+    return null;
   }
 
   return (
-
     <View style={styles.maincontainer}>
-      <View style={styles.innercon}>
-      <View style={{ height: 50 }} />
-      <View style={styles.searchcontainer}>
-        <TextInput
-          style={styles.input}
-          value={newLocation}
-          onChangeText={(text) => setNewLocation(text)}
-          placeholder="Enter your location🌤️"
-        />
-        <TouchableOpacity style={styles.search} onPress={handleSetLocation}>
-          <Image style={{height:20, width:20}} source={require('../assets/clouds/searchIcon.png')}/>
-        </TouchableOpacity>
-      </View>
-      {weather && (
-        <Text style={{fontFamily:'poppinsmed', fontSize:30, color:'#282828'}}>{weather.weather[0].description.charAt(0).toUpperCase() + weather.weather[0].description.slice(1)}</Text>
-      )}
-      <Text style={styles.timeText}>{formatTime(time)}</Text>
-      <View style={styles.cloudimage}>
-        <Image source={require('../assets/clouds/5.png')} resizeMode="contain" style={{height:'100%', width:'100%'}} />
-      </View>
-      <View style={styles.cityname}>
-        <Text style={{fontSize:19, fontFamily:'poppins'}}>Today at {location}</Text>
-      </View>
-      <View style={styles.details}>
-        <View style={styles.temp}>
-        {weather && (
-          <Text style={{fontFamily:'poppinsmed', fontSize:105, color:'#282828'}}>{(weather.main.temp - 273.15).toFixed(0)}°</Text>
-         )}
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={styles.innercon}>
+          <View style={{ height: 50 }} />
+          <View style={styles.searchcontainer}>
+            <TextInput
+              style={styles.input}
+              value={newLocation}
+              onChangeText={(text) => setNewLocation(text)}
+              placeholder="Enter your location🌤️"
+            />
+            <TouchableOpacity style={styles.search} onPress={handleSetLocation}>
+              <Image style={{ height: 20, width: 20 }} source={require('../assets/clouds/searchIcon.png')} />
+            </TouchableOpacity>
+          </View>
+          {loading ? (
+            <ActivityIndicator size="large" color="#0000ff" />
+          ) : (
+            <>
+              {weather && (
+                <Text style={{ fontFamily: 'poppinsmed', fontSize: 30, color: '#282828' }}>
+                  {weather.weather[0].description.charAt(0).toUpperCase() + weather.weather[0].description.slice(1)}
+                </Text>
+              )}
+
+              <View style={styles.cloudimage}>
+              {weather && (
+                <Image
+                source={getWeatherImage(weather.weather[0].description)}
+                resizeMode="contain"
+                style={{ height: '100%', width: '100%' }}
+              />
+              )}
+              </View>
+              <View style={styles.cityname}>
+                <Text style={{ fontSize: 19, fontFamily: 'poppins' }}>Today at {location},</Text>
+              </View>
+              <View style={styles.details}>
+                <View style={styles.temp}>
+                  {weather && (
+                    <Text style={{ fontFamily: 'poppinsmed', fontSize: 105, color: '#282828' }}>
+                      {(weather.main.temp - 273.15).toFixed(0)}°
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.others}>
+                  <View style={styles.humidity}>
+                    <Text style={{ fontFamily: 'poppins', fontSize: 13 }}>Humidity</Text>
+                    <View style={styles.image}>
+                      <Image source={require('../assets/clouds/humidityIcon.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
+                    </View>
+                    {weather && (
+                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#282828' }}>{weather.main.humidity}%</Text>
+                    )}
+                  </View>
+                  <View style={styles.humidity}>
+                    <Text style={{ fontFamily: 'poppins', fontSize: 13 }}>Wind</Text>
+                    <View style={styles.image}>
+                      <Image source={require('../assets/clouds/wind.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
+                    </View>
+                    {weather && (
+                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#282828' }}>{weather.wind.speed}m/s</Text>
+                    )}
+                  </View>
+                </View>
+              </View>
+              <View style={styles.feels}>
+                <View style={styles.feel1}>
+                  <View style={styles.cityname}>
+                    {weather && (
+                      <Text style={{ fontSize: 19, fontFamily: 'poppins' }}>Feels like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.feel2}>
+                  <Image source={require('../assets/clouds/human.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
+                </View>
+              </View>
+            </>
+          )}
         </View>
-      </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -188,6 +255,7 @@ const styles = StyleSheet.create({
     display:'flex',
     flexDirection:'column',
     alignItems:'center',
+    gap:13
   },
   input: {
     fontFamily: 'poppins',
@@ -222,21 +290,19 @@ const styles = StyleSheet.create({
   cloudimage:{
     height:290,
     width:290,
-    backgroundColor:'red'
   },
   cityname:{
-    height:40,
+    height:50,
     width:'87%',
-    backgroundColor:'red',
     display:'flex',
     flexDirection:'row',
     justifyContent:'flex-start',
-    alignItems:'center',
+    alignItems:'flex-end'
   },
   details:{
     height:150,
     width:'87%',
-    backgroundColor:'blue',
+
     display:'flex',
     flexDirection:'row',
     justifyContent:'flex-start',
@@ -245,26 +311,43 @@ const styles = StyleSheet.create({
   temp:{
     height:'100%',
     width:'55%',
-    backgroundColor:'green'
+  },
+  others:{
+    height:'100%',
+    width:'45%',
+    display:'flex',
+    flexDirection:'row',
+    justifyContent:'center',
+    alignItems:'center',
+    gap:10
+  },
+  humidity:{
+    height:80,
+    width:60,
+    display:'flex',
+    flexDirection:'column',
+    justifyContent:'center',
+    alignItems:'center',
+  },
+  image:{
+    height:40,
+    width:40,
+  },
+  feels:{
+    marginTop:-20,
+    height:110,
+    width:'87%',
+    display:'flex',
+    flexDirection:'row',
+    justifyContent:'center',
+    alignItems:'center',
+  },
+  feel1:{
+    height:'100%',
+    width:'60%',
+  },
+  feel2:{
+    height:'100%',
+    width:'40%',
   }
 });
-
-
-
-// <Text style={styles.heading}>Weather App</Text>
-//         <Text>Current Location: {location}</Text>
-//         <TextInput
-//           style={styles.input}
-//           value={newLocation}
-//           onChangeText={(text) => setNewLocation(text)}
-//           placeholder="Enter new location"
-//         />
-//         <Button title="Set Location" onPress={handleSetLocation} />
-//         {weather && (
-//           <View style={styles.weatherContainer}>
-//             <Text style={styles.weatherHeading}>Weather in {weather.name}</Text>
-//             <Text>Temperature: {(weather.main.temp - 273.15).toFixed(2)}°C</Text>
-//             <Text>Weather: {weather.weather[0].description}</Text>
-//             <Text>Humidity: {weather.main.humidity}%</Text>
-//           </View>
-//         )}
