@@ -34,11 +34,11 @@ const weatherImages = {
   thunderstorm: require('../assets/clouds/thunderstorm.png'),
   scattered_clouds: require('../assets/clouds/scattered_clouds.png'),
   few_clouds: require('../assets/clouds/few_clouds.png'),
-  broken_clouds: require('../assets/clouds/broken_clouds.png'),
+  broken_clouds: require('../assets/clouds/clouds.png'),
   wind: require('../assets/clouds/wind.png'),
   hot: require('../assets/clouds/hot.png'),
   light: require('../assets/clouds/light.png'),
-  clouds: require('../assets/clouds/broken_clouds.png'),
+  clouds: require('../assets/clouds/clouds.png'),
 };
 
 const getWeatherImage = (description: string) => {
@@ -198,14 +198,14 @@ export default function App() {
               <View style={styles.details}>
                 <View style={styles.temp}>
                   {weather && (
-                    <Text style={{ fontFamily: 'poppinslight', fontSize: 105, color: '#EEF7FF' }}>
+                    <Text style={{ fontFamily: 'poppinsmed', fontSize: 105, color: '#EEF7FF' }}>
                       {(weather.main.temp - 273.15).toFixed(0)}°
                     </Text>
                   )}
                 </View>
                 <View style={styles.others}>
                   {weather && (
-                    <Text style={{ fontSize: 19, fontFamily: 'poppinslight', color: '#EEF7FF' }}>Feels Like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
+                    <Text style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Feels Like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
                   )}
       
                 </View>
