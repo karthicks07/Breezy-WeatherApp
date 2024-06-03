@@ -34,24 +34,26 @@ const weatherImages = {
   thunderstorm: require('../assets/clouds/thunderstorm.png'),
   scattered_clouds: require('../assets/clouds/scattered_clouds.png'),
   few_clouds: require('../assets/clouds/few_clouds.png'),
-  broken_clouds: require('../assets/clouds/clouds.png'),
+  broken_clouds: require('../assets/clouds/broken_clouds.png'),
+  overcast_clouds: require('../assets/clouds/overcast_clouds.png'),
   wind: require('../assets/clouds/wind.png'),
   hot: require('../assets/clouds/hot.png'),
   light: require('../assets/clouds/light.png'),
-  clouds: require('../assets/clouds/clouds.png'),
+  haze: require('../assets/clouds/haze.png'),
 };
 
 const getWeatherImage = (description: string) => {
   if (description.includes('clear')) return weatherImages.clear;
-  if (description.includes('rain')) return weatherImages.rain;
+  if (description.includes('heavy') || description.includes('moderate')) return weatherImages.rain;
   if (description.includes('thunderstorm')) return weatherImages.thunderstorm;
   if (description.includes('scattered')) return weatherImages.scattered_clouds;
   if (description.includes('few')) return weatherImages.few_clouds;
   if (description.includes('broken')) return weatherImages.broken_clouds;
   if (description.includes('wind')) return weatherImages.wind;
   if (description.includes('hot')) return weatherImages.hot;
-  if (description.includes('light')) return weatherImages.light;
-  if (description.includes('clouds')) return weatherImages.broken_clouds;
+  if (description.includes('light') || description.includes('drizzle')) return weatherImages.light;
+  if (description.includes('overcast')) return weatherImages.overcast_clouds;
+  if (description.includes('haze')) return weatherImages.haze;
   return weatherImages.clear;
 };
 
@@ -69,14 +71,6 @@ export default function App() {
     poppinslight: require('../assets/fonts/Poppins-Thin.ttf'),
   });
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const newTime = new Date(time.getTime() + 3600 * 1000);
-      setTime(newTime);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const formatTime = (date: Date) => {
     const hours = date.getHours().toString().padStart(2, '0');
@@ -232,7 +226,7 @@ export default function App() {
                   <View style={styles.humidity}>
                     <Text style={{ fontFamily: 'poppins', fontSize: 13 , color: '#EEF7FF'}}>Maximum</Text>
                     <View style={styles.image}>
-                      <Image source={require('../assets/clouds/clear.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
+                      <Image source={require('../assets/clouds/hot.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
                       <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_max - 273.15).toFixed(0)}°</Text>
@@ -241,7 +235,7 @@ export default function App() {
                   <View style={styles.humidity}>
                     <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Minimum</Text>
                     <View style={styles.image}>
-                      <Image source={require('../assets/clouds/hot.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
+                      <Image source={require('../assets/clouds/clear.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
                       <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_min - 273.15).toFixed(0)}°</Text>
