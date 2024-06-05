@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
-
+import {ScaledSheet} from 'react-native-size-matters'
 interface WeatherData {
   name: string;
   main: {
@@ -158,6 +158,7 @@ export default function App() {
           <View style={{ height: 50 }} />
           <View style={styles.searchcontainer}>
             <TextInput
+              allowFontScaling={false}
               style={styles.input}
               value={newLocation}
               onChangeText={(text) => setNewLocation(text)}
@@ -172,7 +173,7 @@ export default function App() {
           ) : (
             <>
               {weather && (
-                <Text style={{ fontFamily: 'poppinsmed', fontSize: 30, color: '#EEF7FF' }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'poppinsmed', fontSize: 30, color: '#EEF7FF' }}>
                   {weather.weather[0].description.charAt(0).toUpperCase() + weather.weather[0].description.slice(1)}
                 </Text>
               )}
@@ -187,58 +188,58 @@ export default function App() {
               )}
               </View>
               <View style={styles.cityname}>
-                <Text style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Today at {location},</Text>
+                <Text allowFontScaling={false} style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Today at {location},</Text>
               </View>
               <View style={styles.details}>
                 <View style={styles.temp}>
                   {weather && (
-                    <Text style={{ fontFamily: 'poppinsmed', fontSize: 105, color: '#EEF7FF' }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'poppinsmed', fontSize: 100, color: '#EEF7FF' }}>
                       {(weather.main.temp - 273.15).toFixed(0)}°
                     </Text>
                   )}
                 </View>
                 <View style={styles.others}>
                   {weather && (
-                    <Text style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Feels Like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
+                    <Text allowFontScaling={false} style={{ fontSize: 19, fontFamily: 'poppins', color: '#EEF7FF' }}>Feels Like {(weather.main.feels_like - 273.15).toFixed(0)}°</Text>
                   )}
       
                 </View>
               </View>
               <View style={styles.otherDetails}>
               <View style={styles.humidity}>
-                    <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Humidity</Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Humidity</Text>
                     <View style={styles.image}>
                       <Image source={require('../assets/clouds/humidityIcon.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
-                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{weather.main.humidity}%</Text>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{weather.main.humidity}%</Text>
                     )}
                   </View>
                   <View style={styles.humidity}>
-                    <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Wind</Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Wind</Text>
                     <View style={styles.image}>
                       <Image source={require('../assets/clouds/wind.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
-                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{weather.wind.speed}m/s</Text>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{weather.wind.speed}m/s</Text>
                     )}
                   </View>
                   <View style={styles.humidity}>
-                    <Text style={{ fontFamily: 'poppins', fontSize: 13 , color: '#EEF7FF'}}>Maximum</Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13 , color: '#EEF7FF'}}>Max</Text>
                     <View style={styles.image}>
                       <Image source={require('../assets/clouds/hot.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
-                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_max - 273.15).toFixed(0)}°</Text>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_max - 273.15).toFixed(0)}°</Text>
                     )}
                   </View>
                   <View style={styles.humidity}>
-                    <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Minimum</Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>Min</Text>
                     <View style={styles.image}>
                       <Image source={require('../assets/clouds/clear.png')} resizeMode="contain" style={{ height: '100%', width: '100%' }} />
                     </View>
                     {weather && (
-                      <Text style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_min - 273.15).toFixed(0)}°</Text>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'poppins', fontSize: 13, color: '#EEF7FF' }}>{(weather.main.temp_min - 273.15).toFixed(0)}°</Text>
                     )}
                   </View>
               </View>
@@ -312,7 +313,6 @@ const styles = StyleSheet.create({
   details:{
     height:150,
     width:'87%',
-
     display:'flex',
     flexDirection:'row',
     justifyContent:'flex-start',
