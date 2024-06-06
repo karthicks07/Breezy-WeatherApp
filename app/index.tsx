@@ -169,7 +169,7 @@ export default function App() {
             </TouchableOpacity>
           </View>
           {loading ? (
-            <ActivityIndicator size="large" color="#0000ff" />
+            <ActivityIndicator size="large" color="#fff"/>
           ) : (
             <>
               {weather && (
